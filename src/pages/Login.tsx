@@ -38,6 +38,7 @@ const Login = () => {
               autoplayTimeout={3.5}
               showsPagination={false}
               onIndexChanged={setCurrentIndex}
+              height={500}
             >
               {/* Slide 1: Anonymous Onboarding */}
               <View style={styles.slideContent}>
@@ -57,22 +58,24 @@ const Login = () => {
                 </View>
               </View>
               {/* Slide 2: Infographic and CTA */}
-              <View style={styles.slideContent}>
-                <View style={styles.infographicRow}>
-                  <View style={styles.infographicPerson}>
-                    <View style={[styles.infographicAvatar, { backgroundColor: '#60a5fa' }]}> 
-                      <Text style={{ fontSize: 32 }}>👦</Text>
+              <View style={[styles.slideContent, { justifyContent: 'flex-start' }]}>
+                <View style={styles.infographicContainer}>
+                  <View style={styles.infographicRow}>
+                    <View style={styles.infographicPerson}>
+                      <View style={[styles.infographicAvatar, { backgroundColor: '#60a5fa' }]}> 
+                        <Text style={{ fontSize: 40 }}>👨</Text>
+                      </View>
+                      <View style={[styles.infographicSpeech, styles.infographicSpeechBoy]}>
+                        <Text style={{ color: '#1f2937', fontWeight: 'bold', fontSize: 16 }}>Hi there!</Text>
+                      </View>
                     </View>
-                    <View style={[styles.infographicSpeech, styles.infographicSpeechBoy]}>
-                      <Text style={{ color: '#1f2937', fontWeight: 'bold', fontSize: 14 }}>Hi!</Text>
-                    </View>
-                  </View>
-                  <View style={styles.infographicPerson}>
-                    <View style={[styles.infographicAvatar, { backgroundColor: '#f472b6' }]}> 
-                      <Text style={{ fontSize: 32 }}>👧</Text>
-                    </View>
-                    <View style={[styles.infographicSpeech, styles.infographicSpeechGirl]}>
-                      <Text style={{ color: '#1f2937', fontWeight: 'bold', fontSize: 14 }}>Hello!</Text>
+                    <View style={styles.infographicPerson}>
+                      <View style={[styles.infographicAvatar, { backgroundColor: '#f472b6' }]}> 
+                        <Text style={{ fontSize: 40 }}>👩</Text>
+                      </View>
+                      <View style={[styles.infographicSpeech, styles.infographicSpeechGirl]}>
+                        <Text style={{ color: '#1f2937', fontWeight: 'bold', fontSize: 16 }}>Hello! 👋</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -80,6 +83,7 @@ const Login = () => {
                   <Text style={styles.title}>
                     Talk to anyone,{"\n"}freely
                   </Text>
+                  <Text style={styles.subtitle}>Connect with people who understand you</Text>
                 </View>
               </View>
             </Swiper>
@@ -130,6 +134,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    paddingHorizontal: 20,
   },
   buttonContainer: {
     width: '100%',
@@ -238,38 +243,67 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
   },
+  infographicContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 40,
+    marginBottom: 40,
+  },
   infographicRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginBottom: 32,
-    marginTop: 16,
-    gap: 32,
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 20,
+    minHeight: 180,
   },
   infographicPerson: {
     alignItems: 'center',
+    width: '45%',
   },
   infographicAvatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
+    borderWidth: 3,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   infographicSpeech: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    marginTop: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderWidth: 2,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+    minWidth: 80,
+    alignItems: 'center',
   },
   infographicSpeechBoy: {
     borderColor: '#47cfc8',
+    backgroundColor: 'rgba(71, 207, 200, 0.1)',
   },
   infographicSpeechGirl: {
     borderColor: '#a78bfa',
+    backgroundColor: 'rgba(167, 139, 250, 0.1)',
   },
 });
 

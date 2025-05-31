@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const WalletScreen = () => {
   const [balance, setBalance] = useState(50.00);
   const [rechargeAmount, setRechargeAmount] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('');
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     navigation.goBack();
@@ -36,7 +38,7 @@ const WalletScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#47cfc8" />
-      <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
         <View style={styles.headerContainer}>
           <LinearGradient
             colors={['#47cfc8', '#76cfbc']}
@@ -47,15 +49,19 @@ const WalletScreen = () => {
                 onPress={handleBack}
                 style={styles.backButton}
               >
-                <Ionicons name="arrow-back" size={20} color="white" />
+                <Ionicons name="arrow-back" size={24} color="white" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>My Wallet</Text>
             </View>
           </LinearGradient>
         </View>
 
-        <ScrollView style={styles.content}>
-        {/* Balance Card */}
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Balance Card */}
           <View style={styles.balanceCard}>
             <LinearGradient
               colors={['#3b82f6', '#8b5cf6']}
@@ -72,7 +78,7 @@ const WalletScreen = () => {
             </LinearGradient>
           </View>
 
-        {/* Quick Recharge */}
+          {/* Quick Recharge */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Quick Recharge</Text>
             <View style={styles.quickAmounts}>
@@ -89,30 +95,20 @@ const WalletScreen = () => {
                     styles.amountButtonText,
                     rechargeAmount === amount.toString() && styles.amountButtonTextSelected
                   ]}>
-                  ₹{amount}
+                    ₹{amount}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
-
-            <View style={styles.customAmount}>
-              <TextInput
-                value={rechargeAmount}
-                onChangeText={setRechargeAmount}
-                placeholder="Enter custom amount"
-                keyboardType="numeric"
-                style={styles.amountInput}
-              />
-            </View>
           </View>
 
-        {/* Payment Methods */}
+          {/* Payment Methods */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Payment Method</Text>
             <View style={styles.paymentMethods}>
-            {paymentMethods.map((method) => (
+              {paymentMethods.map((method) => (
                 <TouchableOpacity
-                key={method.id}
+                  key={method.id}
                   onPress={() => setSelectedMethod(method.id)}
                   style={[
                     styles.paymentMethod,
@@ -134,28 +130,28 @@ const WalletScreen = () => {
                       <Text style={styles.paymentMethodName}>{method.name}</Text>
                       <Text style={styles.paymentMethodDesc}>{method.desc}</Text>
                     </View>
-                  {selectedMethod === method.id && (
+                    {selectedMethod === method.id && (
                       <Ionicons name="checkmark-circle" size={20} color="#47cfc8" />
-                  )}
+                    )}
                   </View>
                 </TouchableOpacity>
-            ))}
+              ))}
             </View>
           </View>
 
-        {/* Recharge Button */}
+          {/* Recharge Button */}
           <TouchableOpacity
             onPress={handleRecharge}
-          disabled={!rechargeAmount || parseFloat(rechargeAmount) <= 0 || !selectedMethod}
+            disabled={!rechargeAmount || parseFloat(rechargeAmount) <= 0 || !selectedMethod}
             style={[
               styles.rechargeButton,
               (!rechargeAmount || parseFloat(rechargeAmount) <= 0 || !selectedMethod) && styles.rechargeButtonDisabled
             ]}
           >
             <View style={styles.rechargeButtonContent}>
-          {rechargeAmount && selectedMethod ? (
+              {rechargeAmount && selectedMethod ? (
                 <>
-                  <Ionicons name="add" size={18} color="white" />
+                  <Ionicons name="add" size={20} color="white" />
                   <Text style={styles.rechargeButtonText}>Add ₹{rechargeAmount}</Text>
                 </>
               ) : (
@@ -164,7 +160,7 @@ const WalletScreen = () => {
             </View>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };
@@ -181,15 +177,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#47cfc8',
   },
   header: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
   },
   backButton: {
     padding: 8,
+    marginLeft: -8,
     borderRadius: 20,
   },
   headerTitle: {
@@ -198,20 +196,24 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   content: {
+    flex: 1,
+  },
+  contentContainer: {
     padding: 16,
-    gap: 24,
+    gap: 16,
   },
   balanceCard: {
     borderRadius: 16,
     overflow: 'hidden',
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 4,
+    elevation: 2,
   },
   balanceGradient: {
-    padding: 24,
+    padding: 20,
   },
   balanceContent: {
     alignItems: 'center',
@@ -220,31 +222,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   balanceLabel: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'rgba(255, 255, 255, 0.9)',
   },
   balanceAmount: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     color: 'white',
+    marginVertical: 4,
   },
   balanceSubtext: {
-    fontSize: 12,
+    fontSize: 14,
     color: 'rgba(255, 255, 255, 0.75)',
-    marginTop: 8,
   },
   card: {
     backgroundColor: 'white',
     borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 2,
+    elevation: 1,
   },
   cardTitle: {
     fontSize: 18,
@@ -256,57 +259,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 16,
   },
   amountButton: {
     flex: 1,
     minWidth: '45%',
-    height: 48,
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
+    backgroundColor: '#f3f4f6',
+    padding: 14,
     borderRadius: 12,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   amountButtonSelected: {
-    borderColor: '#47cfc8',
-    backgroundColor: 'rgba(71, 207, 200, 0.1)',
+    backgroundColor: '#47cfc8',
   },
   amountButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontWeight: '600',
     color: '#4b5563',
   },
   amountButtonTextSelected: {
-    color: '#47cfc8',
-  },
-  customAmount: {
-    marginTop: 8,
-  },
-  amountInput: {
-    height: 48,
-    borderWidth: 2,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    color: 'white',
   },
   paymentMethods: {
     gap: 12,
   },
   paymentMethod: {
-    padding: 16,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 12,
+    overflow: 'hidden',
   },
   paymentMethodSelected: {
     borderColor: '#47cfc8',
-    backgroundColor: 'rgba(71, 207, 200, 0.1)',
+    backgroundColor: '#f0fdfa',
   },
   paymentMethodContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    padding: 14,
+    gap: 12,
   },
   paymentMethodIcon: {
     width: 40,
@@ -321,11 +311,10 @@ const styles = StyleSheet.create({
   },
   paymentMethodInfo: {
     flex: 1,
-    marginLeft: 12,
   },
   paymentMethodName: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#1f2937',
   },
   paymentMethodDesc: {
@@ -333,16 +322,10 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   rechargeButton: {
-    height: 56,
-    borderRadius: 12,
     backgroundColor: '#47cfc8',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 12,
+    marginTop: 8,
+    marginBottom: 16,
   },
   rechargeButtonDisabled: {
     backgroundColor: '#e5e7eb',
@@ -350,15 +333,17 @@ const styles = StyleSheet.create({
   rechargeButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    padding: 16,
   },
   rechargeButtonText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: 'white',
   },
   rechargeButtonTextDisabled: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
     color: '#9ca3af',
   },

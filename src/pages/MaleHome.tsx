@@ -4,12 +4,14 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import WalletButton from "../components/WalletButton";
-import ProfileSheet from "../components/ProfileSheet";
+import MaleProfileSheet from "../components/MaleProfileSheet";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Define types
 type RootStackParamList = {
   Call: { listenerId: number; listenerName: string };
   WalletScreen: undefined;
+  MaleProfile: undefined;
 };
 
 type Listener = {
@@ -38,6 +40,7 @@ const MaleHome = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
 
   // Mock data for female listeners
   const listeners: Listener[] = [
@@ -109,10 +112,19 @@ const MaleHome = () => {
 
   const getStatusText = (status: Listener['status']) => {
     switch (status) {
-      case 'online': return 'Available';
-      case 'busy': return 'On Call';
+      case 'online': return 'Online';
+      case 'busy': return 'Busy';
       case 'offline': return 'Offline';
       default: return 'Unknown';
+    }
+  };
+
+  const getStatusBgColor = (status: Listener['status']) => {
+    switch (status) {
+      case 'online': return 'rgba(16, 185, 129, 0.1)';
+      case 'busy': return 'rgba(245, 158, 11, 0.1)';
+      case 'offline': return 'rgba(239, 68, 68, 0.1)';
+      default: return 'rgba(107, 114, 128, 0.1)';
     }
   };
 
@@ -164,10 +176,27 @@ const MaleHome = () => {
             <View style={styles.listenerContent}>
                       {/* Avatar */}
               <View style={styles.avatarContainer}>
-                <View style={styles.avatar}>
+                <View style={[
+                  styles.avatar,
+                  { borderColor: getStatusColor(listener.status) }
+                ]}>
                   <Text style={styles.avatarText}>{listener.avatar}</Text>
                 </View>
-                <View style={[styles.statusDot, { backgroundColor: getStatusColor(listener.status) }]} />
+                <View style={[
+                  styles.statusTag,
+                  { 
+                    backgroundColor: getStatusBgColor(listener.status),
+                  }
+                ]}>
+                  <View style={[
+                    styles.statusDot,
+                    { backgroundColor: getStatusColor(listener.status) }
+                  ]} />
+                  <Text style={[
+                    styles.statusText,
+                    { color: getStatusColor(listener.status) }
+                  ]}>{getStatusText(listener.status)}</Text>
+                </View>
               </View>
                       
                       {/* Content */}
@@ -201,9 +230,9 @@ const MaleHome = () => {
                         
                         {/* Rate and Button */}
                 <View style={styles.rateButtonContainer}>
-                  <View>
+                  <View style={styles.rateContainer}>
                     <Text style={styles.rateText}>₹{listener.rate}</Text>
-                    <Text style={styles.rateSubtext}>per minute</Text>
+                    <Text style={styles.rateSubtext}>/min</Text>
                   </View>
 
                   <TouchableOpacity
@@ -262,18 +291,23 @@ const MaleHome = () => {
   );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#47cfc8" />
-      <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#47cfc8" translucent />
+      <View style={styles.safeArea}>
         <View style={styles.headerContainer}>
           <LinearGradient
             colors={['#47cfc8', '#76cfbc']}
             style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.headerTitle}>LSNR</Text>
+            <View>
+              <Text style={styles.headerTitle}>LSNR</Text>
+              <Text style={styles.headerSubtitle}>Welcome back 👋</Text>
+            </View>
             <View style={styles.headerButtons}>
               <WalletButton />
-              <ProfileSheet />
+              <MaleProfileSheet />
             </View>
           </LinearGradient>
         </View>
@@ -321,37 +355,44 @@ const MaleHome = () => {
             ]}>History</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#47cfc8',
   },
   safeArea: {
     flex: 1,
+    backgroundColor: '#f9fafb',
   },
   headerContainer: {
     backgroundColor: '#47cfc8',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
+    paddingTop: StatusBar.currentHeight || 0,
   },
   header: {
     padding: 16,
+    paddingTop: 8,
+    paddingBottom: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
   },
   headerButtons: {
     flexDirection: 'row',
@@ -426,30 +467,43 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: 'row',
     gap: 16,
+    alignItems: 'flex-start',
   },
   avatarContainer: {
     position: 'relative',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 4,
   },
   avatar: {
     width: 64,
     height: 64,
     backgroundColor: '#f3f4f6',
-    borderRadius: 16,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
   },
   avatarText: {
     fontSize: 24,
   },
+  statusTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: -4,
+  },
   statusDot: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: 'white',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   listenerInfo: {
     flex: 1,
@@ -514,6 +568,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  rateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
   rateText: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -522,7 +581,6 @@ const styles = StyleSheet.create({
   rateSubtext: {
     fontSize: 12,
     color: '#6b7280',
-    marginLeft: 4,
   },
   callButton: {
     backgroundColor: '#47cfc8',

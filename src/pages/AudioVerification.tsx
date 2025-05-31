@@ -1,260 +1,285 @@
 // src/pages/AudioVerification.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
-import { useAudioRecorder, AudioModule, RecordingPresets } from 'expo-audio';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type RootStackParamList = {
+  FemaleLanguageSetup: undefined;
+  FemaleHome: undefined;
+};
 
 const AudioVerification = () => {
-  const navigation = useNavigation();
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [isRecording, setIsRecording] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasRecorded, setHasRecorded] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
 
-  useEffect(() => {
-    (async () => {
-      const status = await AudioModule.requestRecordingPermissionsAsync();
-      if (!status.granted) {
-        Alert.alert('Permission to access microphone was denied');
-      }
-    })();
-  }, []);
-
-  const record = async () => {
-    await audioRecorder.prepareToRecordAsync();
-    audioRecorder.record();
+  const handleStartRecording = () => {
+    // TODO: Implement actual audio recording
     setIsRecording(true);
+    setRecordingDuration(0);
+    const interval = setInterval(() => {
+      setRecordingDuration(prev => {
+        if (prev >= 10) {
+          clearInterval(interval);
+          handleStopRecording();
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000);
   };
 
-  const stopRecording = async () => {
-    await audioRecorder.stop();
+  const handleStopRecording = () => {
     setIsRecording(false);
-    setHasRecording(true);
+    setHasRecorded(true);
   };
 
-  const playRecording = async () => {
-    if (!audioRecorder.uri) return;
-    setIsPlaying(true);
-    const player = new AudioModule.AudioPlayer(audioRecorder.uri, 500);
-    player.play();
-    player.addListener('playbackStatusUpdate', (status) => {
-      if (status.isLoaded && status.didJustFinish) {
-        setIsPlaying(false);
-        player.remove();
-      }
-    });
+  const handlePlayback = () => {
+    Alert.alert('Playing Recording', 'Your recorded audio is playing...');
   };
 
-  const resetRecording = async () => {
-    setHasRecording(false);
-    setIsPlaying(false);
+  const handleContinue = async () => {
+    try {
+      await AsyncStorage.setItem('@voice_verified', 'true');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'FemaleHome' }],
+      });
+    } catch (error) {
+      console.error('Error saving voice verification:', error);
+    }
   };
 
-  const submitVerification = () => {
-    // TODO: Submit audio for verification
-    console.log('Audio submitted for verification:', audioRecorder.uri);
-    navigation.navigate('FemaleHome' as never);
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <LinearGradient 
+      colors={['#47cfc8', '#47cfc8']} 
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#47cfc8" />
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backText}>Back</Text>
+      </TouchableOpacity>
+
       <View style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Voice Verification</Text>
-            <Text style={styles.description}>
-              Record a short voice message to verify your identity and help build trust with users
-            </Text>
-          </View>
-
-          <View style={styles.cardContent}>
-            <View style={styles.instructionBox}>
-              <Text style={styles.instructionText}>
-                Please say: "Hi, I'm here to listen and support you. You can trust me to be a caring and empathetic listener."
-              </Text>
-            </View>
-
-            <View style={styles.controlsContainer}>
-              {!hasRecording && (
-                <TouchableOpacity
-                  onPress={isRecording ? stopRecording : record}
-                  style={[
-                    styles.recordButton,
-                    isRecording ? styles.stopButton : styles.startButton
-                  ]}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons
-                    name={isRecording ? "stop" : "mic"}
-                    size={32}
-                    color="white"
-                  />
-                </TouchableOpacity>
-              )}
-
-              {isRecording && (
-                <View style={styles.recordingStatus}>
-                  <Text style={styles.recordingText}>Recording...</Text>
-                  <Text style={styles.recordingSubtext}>Tap to stop (max 30 seconds)</Text>
-                </View>
-              )}
-
-              {hasRecording && (
-                <View style={styles.playbackControls}>
-                  <TouchableOpacity
-                    onPress={playRecording}
-                    disabled={isPlaying}
-                    style={[styles.button, styles.playButton]}
-                  >
-                    <Ionicons name="play" size={20} color="white" style={styles.buttonIcon} />
-                    <Text style={styles.buttonText}>
-                      {isPlaying ? 'Playing...' : 'Play'}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={resetRecording}
-                    style={[styles.button, styles.resetButton]}
-                  >
-                    <Text style={styles.resetButtonText}>Re-record</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            {hasRecording && (
-              <TouchableOpacity
-                onPress={submitVerification}
-                style={styles.submitButton}
-              >
-                <Text style={styles.submitButtonText}>Submit for Verification</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+        <View style={styles.iconContainer}>
+          <Text style={styles.iconText}>👋</Text>
         </View>
+
+        <Text style={styles.title}>Record your voice</Text>
+        <Text style={styles.subtitle}>This helps us verify your identity</Text>
+
+        <View style={styles.sampleTextCard}>
+          <Text style={styles.sampleText}>
+            "Hello, I'm excited to be part of this community. I'm looking forward to having meaningful conversations and making new connections."
+          </Text>
+        </View>
+
+        <View style={styles.recordingContainer}>
+          {isRecording ? (
+            <View style={styles.recordingStatus}>
+              <View style={styles.recordingIndicator} />
+              <Text style={styles.recordingTime}>{formatTime(recordingDuration)}</Text>
+            </View>
+          ) : hasRecorded ? (
+            <View style={styles.recordingComplete}>
+              <TouchableOpacity 
+                style={styles.playButton}
+                onPress={handlePlayback}
+              >
+                <Ionicons name="play" size={24} color="#47cfc8" />
+              </TouchableOpacity>
+              <Text style={styles.recordingCompleteText}>Recording Complete</Text>
+              <TouchableOpacity 
+                style={styles.retryButton}
+                onPress={handleStartRecording}
+              >
+                <Ionicons name="refresh" size={24} color="#47cfc8" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Text style={styles.recordingInstructions}>
+              Tap the microphone to start recording
+            </Text>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.recordButton,
+            isRecording && styles.recordingActive
+          ]}
+          onPress={isRecording ? handleStopRecording : handleStartRecording}
+        >
+          <Ionicons
+            name={isRecording ? "stop" : "mic"}
+            size={32}
+            color={isRecording ? "white" : "#47cfc8"}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.continueButton,
+            !hasRecorded && styles.continueButtonDisabled
+          ]}
+          onPress={handleContinue}
+          disabled={!hasRecorded}
+        >
+          <Text style={[
+            styles.continueText,
+            !hasRecorded && styles.continueTextDisabled
+          ]}>Continue</Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fcfcfc',
+    backgroundColor: '#47cfc8',
+  },
+  backButton: {
+    padding: 20,
+  },
+  backText: {
+    color: 'white',
+    fontSize: 18,
   },
   content: {
     flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  iconContainer: {
+    width: 120,
+    height: 120,
+    backgroundColor: 'white',
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
-    minHeight: '100%',
-  },
-  card: {
-    width: '100%',
-    maxWidth: 400,
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 40,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#47cfc8',
-    marginBottom: 8,
-  },
-  description: {
+    fontSize: 32,
+    color: 'white',
+    marginBottom: 10,
     textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 40,
+    textAlign: 'center',
+  },
+  sampleTextCard: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 40,
+  },
+  sampleText: {
+    fontSize: 16,
     color: '#666',
-    marginBottom: 16,
+    lineHeight: 24,
   },
-  cardContent: {
-    gap: 24,
+  recordingContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+    minHeight: 60,
   },
-  instructionBox: {
-    backgroundColor: 'rgba(214, 207, 166, 0.2)',
-    padding: 16,
-    borderRadius: 8,
+  recordingStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  instructionText: {
-    fontSize: 14,
-    color: '#374151',
+  recordingIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#ef4444',
   },
-  controlsContainer: {
+  recordingTime: {
+    fontSize: 18,
+    color: 'white',
+    fontWeight: '600',
+  },
+  recordingComplete: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  playButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recordingCompleteText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '500',
+  },
+  recordingInstructions: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   recordButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
+    backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 40,
   },
-  startButton: {
-    backgroundColor: '#47cfc8',
-  },
-  stopButton: {
+  recordingActive: {
     backgroundColor: '#ef4444',
   },
-  recordingStatus: {
+  continueButton: {
+    width: '100%',
+    height: 60,
+    backgroundColor: 'white',
+    borderRadius: 30,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 'auto',
+    marginBottom: 20,
   },
-  recordingText: {
-    color: '#ef4444',
+  continueButtonDisabled: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+  },
+  continueText: {
+    color: '#47cfc8',
+    fontSize: 18,
     fontWeight: '600',
   },
-  recordingSubtext: {
-    fontSize: 14,
-    color: '#666',
+  continueTextDisabled: {
+    color: 'rgba(71, 207, 200, 0.5)',
   },
-  playbackControls: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  playButton: {
-    backgroundColor: '#76cfbc',
-  },
-  resetButton: {
-    borderWidth: 1,
-    borderColor: '#9ca3af',
-  },
-  buttonIcon: {
-    marginRight: 8,
-  },
-  buttonText: {
-    color: 'white',
-  },
-  resetButtonText: {
-    color: '#374151',
-  },
-  submitButton: {
-    backgroundColor: '#47cfc8',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '600',
+  iconText: {
+    fontSize: 50,
   },
 });
 

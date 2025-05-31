@@ -5,27 +5,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Text } from 'react-native';
 
 type RootStackParamList = {
-  FemaleProfile: undefined;
+  MaleProfile: undefined;
 };
 
-interface FemaleProfileSheetProps {
+interface MaleProfileSheetProps {
   userAvatar?: string;
 }
 
-const FemaleProfileSheet: React.FC<FemaleProfileSheetProps> = ({ userAvatar }) => {
+const MaleProfileSheet: React.FC<MaleProfileSheetProps> = ({ userAvatar }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate('FemaleProfile')}
+      onPress={() => navigation.navigate('MaleProfile')}
       style={styles.triggerButton}
     >
       <LinearGradient
-        colors={['#ec4899', '#a855f7']}
+        colors={['#60a5fa', '#a855f7']}
         style={styles.avatarGradient}
       >
         <Text style={styles.avatarText}>
-          {userAvatar || '👩'}
+          {userAvatar || '👨'}
         </Text>
       </LinearGradient>
     </TouchableOpacity>
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FemaleProfileSheet;
+export default MaleProfileSheet; 

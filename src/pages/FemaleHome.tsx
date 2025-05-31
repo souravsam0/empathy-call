@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Alert, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Alert, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import FemaleProfileSheet from "../components/FemaleProfileSheet";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Define types
 type RootStackParamList = {
@@ -12,6 +14,8 @@ type RootStackParamList = {
   FemaleHome: undefined;
   CallHistory: undefined;
   Earnings: undefined;
+  Withdraw: undefined;
+  PaymentHistory: undefined;
 };
 
 type VerificationStatus = 'pending' | 'approved' | 'rejected';
@@ -37,7 +41,25 @@ const FemaleHome = () => {
   const [isLive, setIsLive] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>('pending');
   const [isLoading, setIsLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<{ username: string; avatar: string }>({ username: '', avatar: '' });
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
+
+  // Load user profile
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profileData = await AsyncStorage.getItem('@user_profile');
+        if (profileData) {
+          const profile = JSON.parse(profileData);
+          setUserProfile(profile);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      }
+    };
+    loadProfile();
+  }, []);
 
   // Mock earnings data
   const earnings: Earnings = {
@@ -316,36 +338,62 @@ const FemaleHome = () => {
             </View>
           </LinearGradient>
         </View>
+
+        {/* Withdraw Button */}
+        <TouchableOpacity
+          style={styles.withdrawButton}
+          onPress={() => navigation.navigate('Withdraw')}
+        >
+          <View style={styles.withdrawButtonContent}>
+            <Ionicons name="wallet-outline" size={24} color="white" />
+            <Text style={styles.withdrawButtonText}>Withdraw Earnings</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Payment History Button */}
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={() => navigation.navigate('PaymentHistory')}
+        >
+          <View style={styles.historyButtonContent}>
+            <Ionicons name="time-outline" size={24} color="#47cfc8" />
+            <Text style={styles.historyButtonText}>View Payment History</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#47cfc8" />
-      <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#47cfc8" translucent />
+      <View style={[styles.safeArea, { paddingTop: Platform.OS === 'ios' ? insets.top : StatusBar.currentHeight }]}>
         <View style={styles.headerContainer}>
           <LinearGradient
             colors={['#47cfc8', '#76cfbc']}
             style={styles.header}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
             <View>
               <Text style={styles.headerTitle}>LSNR</Text>
-              <Text style={styles.headerSubtitle}>Welcome back, Shailu 👋</Text>
+              <Text style={styles.headerSubtitle}>Welcome back, {userProfile.username || 'Shailu'} 👋</Text>
             </View>
-            <FemaleProfileSheet />
+            <FemaleProfileSheet userAvatar={userProfile.avatar} />
           </LinearGradient>
         </View>
 
-        {/* Content */}
-        <ScrollView style={styles.content}>
+        <ScrollView 
+          style={styles.content}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
           {activeTab === 'home' ? renderHomeTab() :
            activeTab === 'history' ? renderHistoryTab() :
            renderEarningsTab()}
         </ScrollView>
 
-        {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
+        <View style={[styles.bottomNav, { paddingBottom: Platform.OS === 'ios' ? insets.bottom : 16 }]}>
           <TouchableOpacity
             onPress={() => handleTabChange('home')}
             style={[
@@ -400,7 +448,7 @@ const FemaleHome = () => {
             ]}>Earnings</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 };
@@ -408,24 +456,25 @@ const FemaleHome = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#47cfc8',
   },
   safeArea: {
     flex: 1,
+    backgroundColor: '#f9fafb',
   },
   headerContainer: {
     backgroundColor: '#47cfc8',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
   },
   header: {
     padding: 16,
+    paddingTop: 8,
+    paddingBottom: 24,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
   },
   headerTitle: {
     fontSize: 24,
@@ -435,10 +484,16 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 4,
   },
   content: {
     flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  contentContainer: {
     padding: 16,
+    paddingTop: 24,
+    gap: 24,
   },
   tabContent: {
     gap: 16,
@@ -484,20 +539,18 @@ const styles = StyleSheet.create({
   earningsGrid: {
     flexDirection: 'row',
     gap: 16,
+    marginBottom: 24,
   },
   earningsCard: {
     flex: 1,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: 'white',
   },
   earningsGradient: {
     padding: 16,
     alignItems: 'center',
+    backgroundColor: 'white',
   },
   earningsLabel: {
     fontSize: 12,
@@ -571,25 +624,23 @@ const styles = StyleSheet.create({
   safetyCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: 'white',
+    marginTop: 24,
   },
   safetyGradient: {
-    padding: 20,
+    padding: 16,
+    backgroundColor: 'rgba(214, 207, 166, 0.05)',
   },
   safetyContent: {
     flexDirection: 'row',
     gap: 12,
+    alignItems: 'center',
   },
   safetyDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: '#47cfc8',
-    marginTop: 8,
   },
   safetyText: {
     flex: 1,
@@ -687,11 +738,6 @@ const styles = StyleSheet.create({
     padding: 8,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 4,
   },
   navButton: {
     alignItems: 'center',
@@ -709,6 +755,52 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   navTextActive: {
+    color: '#47cfc8',
+  },
+  withdrawButton: {
+    backgroundColor: '#47cfc8',
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  withdrawButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  withdrawButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
+  historyButton: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 16,
+    borderWidth: 2,
+    borderColor: '#47cfc8',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  historyButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  historyButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
     color: '#47cfc8',
   },
 });

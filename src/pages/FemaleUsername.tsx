@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,12 +8,18 @@ import { Ionicons } from '@expo/vector-icons';
 type RootStackParamList = {
   Login: undefined;
   GenderSelection: undefined;
-  MaleUsername: undefined;
-  MaleHome: undefined;
+  FemaleUsername: undefined;
+  FemaleHome: undefined;
 };
 
-const MaleUsername = () => {
+const AVATARS = [
+  '👩', '👩‍💼', '👩‍⚕️', '👩‍🎓', '👩‍🏫', '👩‍⚖️', 
+  '👩‍🌾', '👩‍🍳', '👩‍🔧', '👩‍🏭', '👩‍💻', '👩‍🎨'
+];
+
+const FemaleUsername = () => {
   const [username, setUsername] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const isValid = username.length >= 3;
 
@@ -24,10 +30,14 @@ const MaleUsername = () => {
   const handleContinue = async () => {
     if (!isValid) return;
     try {
-      await AsyncStorage.setItem('@user_username', username);
-      navigation.navigate('MaleHome');
+      await AsyncStorage.setItem('@user_profile', JSON.stringify({
+        username,
+        avatar: selectedAvatar,
+        gender: 'female'
+      }));
+      navigation.navigate('FemaleHome');
     } catch (error) {
-      console.error('Error saving username:', error);
+      console.error('Error saving profile:', error);
     }
   };
 
@@ -46,15 +56,38 @@ const MaleUsername = () => {
 
         <View style={styles.content}>
           <View style={styles.illustrationContainer}>
-            <View style={styles.circle}>
+            <View style={styles.selectedAvatarContainer}>
+              <View style={styles.selectedAvatar}>
+                <Text style={styles.selectedAvatarText}>{selectedAvatar}</Text>
+              </View>
               <View style={styles.chatBubble}>
                 <Text style={styles.bubbleText}>•••</Text>
               </View>
-              <View style={styles.smallCircle} />
             </View>
           </View>
 
-          <Text style={styles.title}>Tell us your name</Text>
+          <Text style={styles.title}>Choose your avatar</Text>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.avatarList}
+          >
+            {AVATARS.map((avatar, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedAvatar(avatar)}
+                style={[
+                  styles.avatarOption,
+                  selectedAvatar === avatar && styles.avatarOptionSelected
+                ]}
+              >
+                <Text style={styles.avatarOptionText}>{avatar}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          <Text style={[styles.title, { marginTop: 32 }]}>Tell us your name</Text>
           
           <View style={styles.inputContainer}>
             <TextInput
@@ -133,14 +166,27 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     alignItems: 'center',
   },
-  circle: {
+  selectedAvatarContainer: {
+    position: 'relative',
+  },
+  selectedAvatar: {
     width: 120,
     height: 120,
-    borderRadius: 60,
     backgroundColor: '#fff',
+    borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  selectedAvatarText: {
+    fontSize: 48,
   },
   chatBubble: {
     position: 'absolute',
@@ -163,21 +209,34 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  smallCircle: {
-    position: 'absolute',
-    bottom: 10,
-    right: -10,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#76cfbc',
-  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#fff',
-    marginBottom: 40,
+    marginBottom: 24,
     textAlign: 'center',
+  },
+  avatarList: {
+    paddingHorizontal: 20,
+    gap: 16,
+    flexDirection: 'row',
+  },
+  avatarOption: {
+    width: 56,
+    height: 56,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  avatarOptionSelected: {
+    backgroundColor: '#fff',
+    borderColor: '#47cfc8',
+  },
+  avatarOptionText: {
+    fontSize: 24,
   },
   inputContainer: {
     width: '100%',
@@ -240,4 +299,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MaleUsername;
+export default FemaleUsername; 

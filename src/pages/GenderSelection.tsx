@@ -8,7 +8,8 @@ type RootStackParamList = {
   Login: undefined;
   GenderSelection: undefined;
   MaleUsername: undefined;
-  FemaleProfileSetup: undefined;
+  FemaleNameSetup: undefined;
+  FemaleAvatarSetup: undefined;
   MaleHome: undefined;
   FemaleHome: undefined;
   AudioVerification: undefined;
@@ -50,7 +51,7 @@ const GenderSelection = () => {
         if (selectedGender === 'male') {
           navigation.navigate('MaleUsername');
         } else {
-          navigation.navigate('FemaleProfileSetup');
+          navigation.navigate('FemaleNameSetup');
         }
       } catch (error) {
         console.error('Error saving gender:', error);
