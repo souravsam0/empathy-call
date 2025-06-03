@@ -76,6 +76,116 @@ const MaleHome = () => {
       status: 'online',
       rating: 4.7,
       totalCalls: 120
+    },
+    {
+      id: 4,
+      name: 'Meera',
+      avatar: '👩‍🏫',
+      location: 'Chennai, India',
+      rate: 28,
+      languages: ['Tamil', 'English', 'Telugu'],
+      status: 'offline',
+      rating: 4.6,
+      totalCalls: 180
+    },
+    {
+      id: 5,
+      name: 'Ritu',
+      avatar: '👩‍💻',
+      location: 'Pune, India',
+      rate: 32,
+      languages: ['Marathi', 'Hindi', 'English'],
+      status: 'online',
+      rating: 4.9,
+      totalCalls: 250
+    },
+    {
+      id: 6,
+      name: 'Zara',
+      avatar: '👩‍🎨',
+      location: 'Hyderabad, India',
+      rate: 27,
+      languages: ['Telugu', 'Hindi', 'Urdu'],
+      status: 'busy',
+      rating: 4.7,
+      totalCalls: 160
+    },
+    {
+      id: 7,
+      name: 'Kavya',
+      avatar: '👩‍🔬',
+      location: 'Kolkata, India',
+      rate: 29,
+      languages: ['Bengali', 'English', 'Hindi'],
+      status: 'online',
+      rating: 4.8,
+      totalCalls: 190
+    },
+    {
+      id: 8,
+      name: 'Deepa',
+      avatar: '👩‍⚖️',
+      location: 'Ahmedabad, India',
+      rate: 31,
+      languages: ['Gujarati', 'Hindi', 'English'],
+      status: 'offline',
+      rating: 4.5,
+      totalCalls: 140
+    },
+    {
+      id: 9,
+      name: 'Sana',
+      avatar: '👩‍🌾',
+      location: 'Lucknow, India',
+      rate: 26,
+      languages: ['Urdu', 'Hindi'],
+      status: 'online',
+      rating: 4.6,
+      totalCalls: 130
+    },
+    {
+      id: 10,
+      name: 'Maya',
+      avatar: '👩‍🍳',
+      location: 'Jaipur, India',
+      rate: 33,
+      languages: ['Hindi', 'Rajasthani', 'English'],
+      status: 'busy',
+      rating: 4.8,
+      totalCalls: 220
+    },
+    {
+      id: 11,
+      name: 'Lakshmi',
+      avatar: '👩‍🏭',
+      location: 'Kochi, India',
+      rate: 34,
+      languages: ['Malayalam', 'English', 'Tamil'],
+      status: 'online',
+      rating: 4.9,
+      totalCalls: 210
+    },
+    {
+      id: 12,
+      name: 'Amrita',
+      avatar: '👩‍🎤',
+      location: 'Chandigarh, India',
+      rate: 28,
+      languages: ['Punjabi', 'Hindi', 'English'],
+      status: 'offline',
+      rating: 4.7,
+      totalCalls: 170
+    },
+    {
+      id: 13,
+      name: 'Nisha',
+      avatar: '👩‍🔧',
+      location: 'Bhopal, India',
+      rate: 30,
+      languages: ['Hindi', 'English'],
+      status: 'online',
+      rating: 4.8,
+      totalCalls: 185
     }
   ];
 
